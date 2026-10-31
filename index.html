@@ -867,7 +867,9 @@ function siguientePregunta(){
       bien = opcionElegida === p.correcta;
       respuestaCorrecta = p.correcta ? "Verdadero" : "Falso";
       document.getElementById(p.correcta?"opt-true":"opt-false").classList.add("correcta");
-      document.getElementById(opcionElegida===p.correcta?"":(opcionElegida?"opt-true":"opt-false")).classList.add("incorrecta");
+      if(opcionElegida !== p.correcta){
+        document.getElementById(opcionElegida?"opt-true":"opt-false").classList.add("incorrecta");
+      }
     } else if(p.tipo==="texto"){
       const ingresada=normalizarTexto(opcionElegida||"");
       const esperada=normalizarTexto(p.respuesta);
