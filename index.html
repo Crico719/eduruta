@@ -37,7 +37,7 @@
   .stat .ico{font-size:18px;}
   .stat.fire{color:var(--naranja);} .stat.xp{color:var(--azul);} .stat.lvl{color:var(--morado);}
 
-  .contenedor{max-width:860px;margin:0 auto;padding:28px 20px 40px;}
+  .contenedor{max-width:860px;margin:0 auto;padding:28px 20px 80px;}
 
   /* ===== INICIO ===== */
   .saludo{text-align:center;margin-bottom:22px;}
@@ -106,7 +106,21 @@
   .leccion-btn{padding:12px 18px;border-radius:12px;font-weight:800;font-size:14px;display:flex;align-items:center;gap:7px;transition:all .15s;border:2px solid transparent;}
   .leccion-btn.disponible{background:var(--naranja);color:#fff;box-shadow:0 3px 0 #cc7a00;border-color:var(--naranja);}
   .leccion-btn.disponible:hover{transform:translateY(-2px);box-shadow:0 5px 0 #cc7a00;}
-  .leccion-btn.completada{background:var(--verde-claro);color:var(--verde-osc);border-color:var(--verde);}
+  .leccion-btn.completada{background:var(--verde);color:#fff;border-color:var(--verde-osc);box-shadow:0 3px 0 var(--verde-osc);}
+  .leccion-btn.completada .dominio{background:rgba(255,255,255,.25);color:#fff;}
+  .unidad.activa{border:3px solid var(--naranja);box-shadow:0 0 0 4px rgba(255,150,0,.15), var(--sombra);}
+  .glosario-palabra{color:var(--azul-osc);text-decoration:underline dotted;cursor:pointer;font-weight:800;padding:0 2px;border-radius:3px;transition:background .15s;}
+  .glosario-palabra:hover{background:var(--azul-claro);}
+  @media print{
+    .topbar,.footer,.menu,.btn-reanudar,.leccion-btn,.volver,.no-imprimir{display:none!important;}
+    body{background:#fff;}
+    .contenedor{max-width:100%;padding:0;}
+    .unidad-header{background:#fff!important;color:#000!important;border:2px solid #333;}
+    .unidad-header .uh-objetivo,.unidad-header .uh-meta span{background:#f0f0f0!important;color:#000!important;}
+    .unidad{break-inside:avoid;box-shadow:none;border:1px solid #ccc;}
+    .resumen-imprimir h2{color:#1899d6;}
+    .resumen-imprimir .tema{margin-bottom:14px;padding-bottom:10px;border-bottom:1px dashed #ccc;}
+  }
   .leccion-btn.bloqueada{background:var(--gris);color:var(--texto-claro);cursor:not-allowed;border-color:var(--gris);}
   .leccion-btn .dominio{font-size:10px;padding:2px 6px;border-radius:6px;background:rgba(0,0,0,.1);}
 
@@ -712,15 +726,19 @@ function mostrarUnidades(){
     <div class="uh-objetivo"><b>🎯 Objetivo general:</b> Dominar los fundamentos de matemática: números enteros, fracciones, decimales, álgebra básica, ecuaciones y geometría.</div>
     <div class="uh-meta"><span>📚 ${total} lecciones</span><span>⏱️ ~2 horas total</span><span>⭐ +240 XP</span><span>🏆 6 medallas de unidad</span></div>
     <div class="uh-prog"><div class="barra"><div class="rell" style="width:${comp/total*100}%"></div></div><span class="txt">${comp}/${total} completadas</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
     ${proxima?`<button class="btn-reanudar" onclick="empezarLeccion('${proxima}')">▶ Reanudar: ${buscarLeccion(proxima).titulo}</button>`:`<button class="btn-reanudar" style="background:var(--verde);color:#fff;">👑 ¡Completaste todo! Repasa cuando quieras</button>`}
+    <button class="btn-reanudar" style="background:var(--morado);" onclick="descargarResumen()">📄 Descargar resumen PDF</button>
+    </div>
   </div>`;
 
+  const posProxima = proxima ? posicionLeccion(proxima) : null;
   UNIDADES.forEach((u,ui)=>{
     let c=0; u.lecciones.forEach(l=>{ if(estado.leccionesCompletadas[l.id])c++; });
     let et="lock", el="🔒 Bloqueada";
     if(c===u.lecciones.length){et="done";el="✓ Completada";}
     else if(c>0||leccionDisponible(ui,0)){et="doing";el="▶ En curso";}
-    html+=`<div class="unidad animar">
+    html+=`<div class="unidad animar ${posProxima && posProxima.ui===ui?'activa':''}">
       <div class="head"><div class="num">${u.id}</div><h3>${u.titulo}</h3><span class="estado ${et}">${el}</span></div>
       <div class="u-objetivo">🎯 ${u.objetivo}</div>
       <div class="u-meta"><span>⏱️ ${u.tiempo}</span><span>⭐ ${u.xp}</span><span>📊 ${c}/${u.lecciones.length} lecciones</span></div>
@@ -813,6 +831,7 @@ function mostrarPregunta(){
   html+=`<div id="feedback-zone"></div>
     <button class="btn-continuar" id="btn-continuar" disabled onclick="siguientePregunta()">Comprobar</button>`;
   document.getElementById("contenido-leccion").innerHTML=html;
+  if(preguntaIdx===0) resaltarGlosario();
 }
 function habilitarBotonTexto(){
   const v=document.getElementById("input-respuesta").value.trim();
@@ -1000,6 +1019,54 @@ function abrirGlosario(){
   document.getElementById("modal").classList.remove("oculto");
 }
 function cerrarModal(){ document.getElementById("modal").classList.add("oculto"); }
+
+// ============================================================
+//  GLOSARIO CLICABLE + DESCARGA PDF
+// ============================================================
+function resaltarGlosario(){
+  const el = document.querySelector(".explicacion");
+  if(!el) return;
+  let html = el.innerHTML;
+  const ordenados = [...GLOSARIO].sort((a,b)=>b.t.length - a.t.length);
+  ordenados.forEach((g,i)=>{
+    const esc = g.t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const re = new RegExp(esc,'gi');
+    html = html.replace(re, `__GLOSS${i}__`);
+  });
+  ordenados.forEach((g,i)=>{
+    html = html.split(`__GLOSS${i}__`).join(`<span class="glosario-palabra" onclick="abrirTermino('${g.t}')">${g.t}</span>`);
+  });
+  el.innerHTML = html;
+}
+function abrirTermino(t){
+  const g = GLOSARIO.find(x=>x.t.toLowerCase()===String(t).toLowerCase());
+  if(!g){ cerrarModal(); return; }
+  document.getElementById("modal-titulo").textContent = "📖 "+g.t;
+  document.getElementById("modal-contenido").innerHTML = `<p style="font-size:16px;color:var(--texto);line-height:1.6;">${g.d}</p>`;
+  document.getElementById("modal").classList.remove("oculto");
+}
+function descargarResumen(){
+  let html = `<h1 style="color:#1899d6;margin-bottom:6px;">🌱 EduRuta — Resumen de Matemática</h1>
+    <p style="color:#666;margin-bottom:18px;">1° de Secundaria · Generado el ${new Date().toLocaleDateString('es-PE')}</p>
+    <p style="background:#ddf4ff;padding:12px;border-radius:8px;margin-bottom:20px;"><b>📊 Mi progreso:</b> ${leccionesCompletadasCount()}/${totalLecciones()} lecciones completadas · ${estado.xp} XP · Racha: ${estado.racha} días · Nivel ${nivel()}</p>`;
+  UNIDADES.forEach(u=>{
+    html += `<div class="tema" style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px dashed #ccc;">
+      <h2 style="font-size:17px;color:#1899d6;margin-bottom:6px;">Unidad ${u.id}: ${u.titulo}</h2>
+      <p style="margin:3px 0;"><b>🎯 Objetivo:</b> ${u.objetivo}</p>
+      <p style="margin:3px 0;"><b>⏱️ Tiempo:</b> ${u.tiempo} · <b>⭐ Recompensa:</b> ${u.xp}</p>
+      <p style="margin:3px 0;"><b>📚 Lecciones:</b> ${u.lecciones.map(l=>l.titulo).join(" · ")}</p></div>`;
+  });
+  html += `<h2 style="font-size:17px;color:#1899d6;margin:16px 0 8px;">📖 Glosario</h2><ul style="padding-left:20px;margin:0;">`;
+  GLOSARIO.forEach(g=>{ html += `<li style="margin-bottom:6px;"><b>${g.t}:</b> ${g.d}</li>`; });
+  html += `</ul><p style="margin-top:20px;color:#999;font-size:12px;">Generado con EduRuta v3.1 · Hecho con 💚 para estudiantes peruanos</p>`;
+  const w = window.open("", "_blank");
+  if(w){
+    w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Resumen EduRuta - Matemática 1° Secundaria</title><style>body{font-family:Arial,sans-serif;color:#333;max-width:800px;margin:0 auto;padding:30px;line-height:1.5;} h1{color:#1899d6;} h2{color:#1899d6;}</style></head><body>${html}<script>window.onload=function(){setTimeout(function(){window.print();},300);}<\/script></body></html>`);
+    w.document.close();
+  } else {
+    alert("⚠️ Por favor permite ventanas emergentes en tu navegador para descargar el resumen en PDF.");
+  }
+}
 
 // ============================================================
 //  INICIO
