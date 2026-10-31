@@ -37,10 +37,10 @@
   .stat .ico{font-size:18px;}
   .stat.fire{color:var(--naranja);} .stat.xp{color:var(--azul);} .stat.lvl{color:var(--morado);}
 
-  .contenedor{max-width:860px;margin:0 auto;padding:28px 20px 80px;}
+  .contenedor{max-width:860px;margin:0 auto;padding:36px 24px 100px;}
 
   /* ===== INICIO ===== */
-  .saludo{text-align:center;margin-bottom:22px;}
+  .saludo{text-align:center;margin-bottom:30px;}
   .saludo h1{font-size:34px;font-weight:900;margin-bottom:8px;letter-spacing:-.5px;}
   .saludo p{color:var(--texto-claro);font-size:16px;}
   .meta-hoy{background:linear-gradient(135deg,var(--azul),#0a8fd6);color:#fff;border-radius:var(--radio);padding:18px 22px;margin-bottom:26px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--sombra);}
@@ -48,8 +48,8 @@
   .meta-hoy .barra{flex:1;margin:0 16px;height:12px;background:rgba(255,255,255,.3);border-radius:6px;overflow:hidden;}
   .meta-hoy .relleno{height:100%;background:#fff;border-radius:6px;transition:width .5s;}
   .seccion-titulo{font-size:20px;font-weight:900;margin:0 0 14px 4px;display:flex;align-items:center;gap:8px;}
-  .materias{display:grid;grid-template-columns:1fr;gap:18px;}
-  .materia{background:var(--blanco);border-radius:var(--radio);padding:22px;display:flex;align-items:center;gap:20px;box-shadow:var(--sombra);cursor:pointer;transition:transform .18s, box-shadow .18s;position:relative;overflow:hidden;border:3px solid transparent;}
+  .materias{display:grid;grid-template-columns:1fr;gap:26px;}
+  .materia{background:var(--blanco);border-radius:20px;padding:28px;display:flex;align-items:center;gap:24px;box-shadow:var(--sombra);cursor:pointer;transition:transform .18s, box-shadow .18s;position:relative;overflow:hidden;border:3px solid transparent;}
   .materia:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.12);}
   .materia.activa{border-color:var(--azul);box-shadow:0 0 0 4px rgba(28,176,246,.15), var(--sombra);}
   .materia .icono{width:68px;height:68px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:38px;flex-shrink:0;}
@@ -90,7 +90,7 @@
   .subtitulo-seccion{color:var(--texto-claro);font-size:15px;margin-bottom:24px;}
 
   /* ===== TARJETA DE UNIDAD (lista) ===== */
-  .unidad{background:var(--blanco);border-radius:var(--radio);padding:20px 22px;margin-bottom:18px;box-shadow:var(--sombra);transition:transform .15s;}
+  .unidad{background:var(--blanco);border-radius:20px;padding:26px 28px;margin-bottom:26px;box-shadow:var(--sombra);transition:transform .15s;}
   .unidad:hover{transform:translateY(-2px);}
   .unidad .head{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
   .unidad .num{width:42px;height:42px;border-radius:50%;background:var(--azul-claro);color:var(--azul-osc);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;flex-shrink:0;}
@@ -134,13 +134,13 @@
   .leccion-nav button:hover:not(:disabled){border-color:var(--azul);color:var(--azul);}
   .leccion-nav button:disabled{opacity:.4;cursor:not-allowed;}
   .pregunta-num{font-size:13px;font-weight:800;color:var(--texto-claro);margin-bottom:8px;}
-  .explicacion{background:var(--azul-claro);border-left:5px solid var(--azul);border-radius:12px;padding:20px 22px;margin-bottom:20px;font-size:15px;line-height:1.6;}
+  .explicacion{background:var(--azul-claro);border-left:5px solid var(--azul);border-radius:14px;padding:26px 28px;margin-bottom:26px;font-size:16px;line-height:1.7;}
   .explicacion h4{color:var(--azul-osc);margin-bottom:10px;font-size:17px;}
   .explicacion .formula{background:#fff;padding:9px 16px;border-radius:8px;display:inline-block;margin:7px 0;font-weight:800;font-size:17px;}
   .tip{background:var(--naranja-claro);border-left:5px solid var(--naranja);border-radius:12px;padding:14px 18px;margin-bottom:20px;font-size:14px;line-height:1.5;}
   .tip b{color:#b8860b;}
-  .pregunta-texto{font-size:21px;font-weight:900;margin-bottom:22px;line-height:1.4;}
-  .opciones{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
+  .pregunta-texto{font-size:23px;font-weight:900;margin-bottom:28px;line-height:1.4;}
+  .opciones{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px;}
   .opcion{background:var(--blanco);border:2px solid var(--gris);border-radius:14px;padding:18px;font-size:18px;font-weight:800;text-align:center;transition:all .15s;box-shadow:0 3px 0 var(--gris);}
   .opcion:hover:not(.seleccionada):not(.correcta):not(.incorrecta){border-color:var(--azul);color:var(--azul);transform:translateY(-2px);}
   .opcion.seleccionada{border-color:var(--azul);background:var(--azul-claro);color:var(--azul-osc);box-shadow:0 3px 0 var(--azul);}
@@ -266,6 +266,12 @@
       <h1 id="saludo-texto">¡Hola! 👋</h1>
       <p>Sigue tu ruta de aprendizaje, un paso a la vez.</p>
     </div>
+    <div id="hero-continuar" class="animar" style="background:linear-gradient(135deg,var(--verde),var(--azul));color:#fff;border-radius:20px;padding:30px 28px;margin-bottom:28px;box-shadow:0 6px 0 rgba(0,0,0,.12);cursor:pointer;transition:transform .2s;" onclick="continuarAprendiendo()">
+      <div style="font-size:13px;font-weight:900;opacity:.85;margin-bottom:8px;letter-spacing:1px;">▶ CONTINUAR APRENDIENDO</div>
+      <div style="font-size:26px;font-weight:900;margin-bottom:10px;line-height:1.2;" id="hero-titulo">Empieza tu primera lección</div>
+      <div style="font-size:14px;opacity:.9;" id="hero-subtitulo">📘 Matemática · ~5 min · +20 XP</div>
+      <div style="margin-top:16px;display:inline-block;background:#fff;color:var(--verde-osc);padding:10px 22px;border-radius:12px;font-weight:900;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.15);">Empezar →</div>
+    </div>
     <div class="meta-hoy animar">
       <span class="txt">🎯 Meta de hoy: 1 lección</span>
       <div class="barra"><div class="relleno" id="meta-relleno" style="width:0%"></div></div>
@@ -307,7 +313,8 @@
     </div>
     <div class="leccion-nav">
       <button id="btn-leccion-prev" onclick="navegarLeccion(-1)">← Lección anterior</button>
-      <button class="btn-ayuda" onclick="abrirAyuda()">💬 ¿No entiendes? Pide ayuda</button>
+      <button class="btn-ayuda" style="background:var(--rojo);" onclick="abrirVideo()">📺 Ver video</button>
+      <button class="btn-ayuda" onclick="abrirAyuda()">💬 Ayuda</button>
       <button id="btn-leccion-next" onclick="navegarLeccion(1)">Lección siguiente →</button>
     </div>
     <div id="contenido-leccion"></div>
@@ -387,7 +394,7 @@
     <button onclick="abrirModal('Ayuda','Consejos: 1) Completa una lección al día. 2) No te rindas si fallas — repasa la explicación. 3) Tus corazones se recuperan en cada lección. 4) Usa el Glosario si no entiendes un término. 💪')">Ayuda</button>
     <button onclick="abrirGlosario()">📖 Glosario</button>
   </div>
-  <p>🌱 EduRuta v3.2 · Hecho con 💚 para estudiantes peruanos · 2026</p>
+  <p>🌱 EduRuta v4.0 · Hecho con 💚 para estudiantes peruanos · 2026</p>
 </div>
 
 <!-- MODAL -->
@@ -700,6 +707,18 @@ function actualizarStats(){
   let s="¡Hola! 👋";
   if(h<12)s="¡Buenos días! ☀️"; else if(h<19)s="¡Buenas tardes! 🌤️"; else s="¡Buenas noches! 🌙";
   document.getElementById("saludo-texto").textContent=s;
+  // Actualizar tarjeta hero
+  const prox = encontrarProximaLeccion();
+  const heroTitulo = document.getElementById("hero-titulo");
+  const heroSub = document.getElementById("hero-subtitulo");
+  if(prox){
+    const l = buscarLeccion(prox);
+    heroTitulo.textContent = l.titulo;
+    heroSub.textContent = "📘 Matemática · ~5 min · +20 XP";
+  } else {
+    heroTitulo.textContent = "👑 ¡Completaste todo! Repasa cuando quieras";
+    heroSub.textContent = "📘 Matemática · Todas las lecciones completadas";
+  }
 }
 function irInicio(){ actualizarStats(); mostrar("pantalla-inicio"); }
 
@@ -1152,6 +1171,20 @@ function descargarResumen(){
   } else {
     alert("⚠️ Por favor permite ventanas emergentes en tu navegador para generar el PDF.");
   }
+}
+
+// ============================================================
+//  VIDEO DE REFUERZO + HERO
+// ============================================================
+function abrirVideo(){
+  if(!leccionActual) return;
+  const query = encodeURIComponent(leccionActual.titulo + " matemáticas secundaria explicación");
+  window.open("https://www.youtube.com/results?search_query="+query, "_blank");
+}
+function continuarAprendiendo(){
+  const prox = encontrarProximaLeccion();
+  if(prox) empezarLeccion(prox);
+  else mostrarUnidades();
 }
 
 // ============================================================
