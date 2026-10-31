@@ -179,6 +179,9 @@
   .btn-accion:hover{transform:translateY(-2px);}
   .btn-accion.primario{background:var(--verde);color:#fff;box-shadow:0 4px 0 var(--verde-osc);}
   .btn-accion.secundario{background:var(--blanco);color:var(--texto);border:2px solid var(--gris);}
+  .btn-meta{padding:10px 18px;border-radius:10px;font-weight:800;font-size:14px;background:var(--gris);color:var(--texto-claro);border:2px solid transparent;transition:all .15s;}
+  .btn-meta:hover{border-color:var(--azul);}
+  .btn-meta.activo{background:var(--azul);color:#fff;border-color:var(--azul-osc);}
   .btn-accion.siguiente{background:var(--azul);color:#fff;box-shadow:0 4px 0 var(--azul-osc);}
 
   /* ===== PROGRESO / MEDALLAS ===== */
@@ -273,7 +276,7 @@
       <div style="margin-top:16px;display:inline-block;background:#fff;color:var(--verde-osc);padding:10px 22px;border-radius:12px;font-weight:900;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.15);">Empezar →</div>
     </div>
     <div class="meta-hoy animar">
-      <span class="txt">🎯 Meta de hoy: 1 lección</span>
+      <span class="txt" id="meta-label">🎯 Meta de hoy: 1 lección</span>
       <div class="barra"><div class="relleno" id="meta-relleno" style="width:0%"></div></div>
       <span class="txt" id="meta-texto">0/1</span>
     </div>
@@ -345,6 +348,10 @@
     <h2 class="titulo-seccion">🏆 Tu Progreso</h2>
     <p class="subtitulo-seccion">Mira todo lo que has logrado.</p>
     <div class="stats-fila" id="prog-stats"></div>
+    <div class="seccion-titulo">📈 Tu actividad esta semana</div>
+    <div id="grafico-semanal" style="background:var(--blanco);border-radius:var(--radio);padding:20px;box-shadow:var(--sombra);margin-bottom:24px;display:flex;align-items:flex-end;justify-content:space-around;gap:8px;height:180px;"></div>
+    <div class="seccion-titulo">🔁 Temas para repasar</div>
+    <div id="zona-repaso" style="margin-bottom:24px;"></div>
     <div class="seccion-titulo">🎖️ Medallas</div>
     <div class="medallas-grid" id="medallas-grid"></div>
   </div>
@@ -367,6 +374,19 @@
     <div style="background:var(--blanco);border-radius:var(--radio);padding:20px;box-shadow:var(--sombra);margin-bottom:18px;">
       <h3 style="font-size:17px;font-weight:900;margin-bottom:12px;">📄 Descargar material</h3>
       <button class="btn-accion siguiente" onclick="descargarResumen()">📄 Generar PDF con teoría + ejercicios</button>
+    </div>
+    <div style="background:var(--blanco);border-radius:var(--radio);padding:20px;box-shadow:var(--sombra);margin-bottom:18px;">
+      <h3 style="font-size:17px;font-weight:900;margin-bottom:12px;">🎯 Meta diaria</h3>
+      <p style="font-size:13px;color:var(--texto-claro);margin-bottom:12px;">¿Cuántas lecciones quieres completar por día?</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-meta" data-meta="1" onclick="setMeta(1)">1 lección</button>
+        <button class="btn-meta" data-meta="2" onclick="setMeta(2)">2 lecciones</button>
+        <button class="btn-meta" data-meta="3" onclick="setMeta(3)">3 lecciones</button>
+      </div>
+    </div>
+    <div style="background:var(--blanco);border-radius:var(--radio);padding:20px;box-shadow:var(--sombra);margin-bottom:18px;">
+      <h3 style="font-size:17px;font-weight:900;margin-bottom:12px;">🔊 Sonidos</h3>
+      <button class="btn-accion secundario" id="btn-sonido" onclick="toggleSonido()">🔊 Sonido: Activado</button>
     </div>
     <div style="background:var(--blanco);border-radius:var(--radio);padding:20px;box-shadow:var(--sombra);">
       <h3 style="font-size:17px;font-weight:900;margin-bottom:12px;">⚙️ Ajustes</h3>
@@ -394,7 +414,7 @@
     <button onclick="abrirModal('Ayuda','Consejos: 1) Completa una lección al día. 2) No te rindas si fallas — repasa la explicación. 3) Tus corazones se recuperan en cada lección. 4) Usa el Glosario si no entiendes un término. 💪')">Ayuda</button>
     <button onclick="abrirGlosario()">📖 Glosario</button>
   </div>
-  <p>🌱 EduRuta v4.0 · Hecho con 💚 para estudiantes peruanos · 2026</p>
+  <p>🌱 EduRuta v5.0 · Hecho con 💚 para estudiantes peruanos · 2026</p>
 </div>
 
 <!-- MODAL -->
@@ -654,7 +674,7 @@ const GLOSARIO = [
 // ============================================================
 //  ESTADO
 // ============================================================
-let estado = { xp:0, racha:0, ultimoDia:null, leccionesCompletadas:{}, leccionesHoy:0, diaHoy:null };
+let estado = { xp:0, racha:0, ultimoDia:null, leccionesCompletadas:{}, leccionesHoy:0, diaHoy:null, xpPorDia:{}, metaDiaria:1, sonido:true };
 function cargarEstado(){
   try{ const g=localStorage.getItem("eduruta_estado"); if(g) estado=JSON.parse(g); }catch(e){}
   const hoy=new Date().toDateString();
@@ -701,8 +721,9 @@ function actualizarStats(){
   const pct=total>0?Math.round(comp/total*100):0;
   document.getElementById("prog-mate").style.width=pct+"%";
   document.getElementById("prog-mate-txt").textContent=comp+"/"+total+" lecciones";
-  document.getElementById("meta-relleno").style.width=Math.min(estado.leccionesHoy,1)*100+"%";
-  document.getElementById("meta-texto").textContent=Math.min(estado.leccionesHoy,1)+"/1";
+  document.getElementById("meta-relleno").style.width=Math.min(estado.leccionesHoy,estado.metaDiaria)/estado.metaDiaria*100+"%";
+  document.getElementById("meta-texto").textContent=Math.min(estado.leccionesHoy,estado.metaDiaria)+"/"+estado.metaDiaria;
+  document.getElementById("meta-label").textContent="🎯 Meta de hoy: "+estado.metaDiaria+" lección"+(estado.metaDiaria>1?"es":"");
   const h=new Date().getHours();
   let s="¡Hola! 👋";
   if(h<12)s="¡Buenos días! ☀️"; else if(h<19)s="¡Buenas tardes! 🌤️"; else s="¡Buenas noches! 🌙";
@@ -904,6 +925,7 @@ function siguientePregunta(){
       inp.style.borderColor = bien ? "var(--verde)" : "var(--rojo)";
       inp.style.background = bien ? "var(--verde-claro)" : "#ffe5e5";
     }
+    playSound(bien?"bien":"mal");
     let fb="";
     if(bien){ aciertos++; fb=`<div class="feedback bien"><h4>✅ ¡Correcto! +5 XP</h4><p>${p.expl}</p></div>`; }
     else { corazones--; actualizarCorazones(); fb=`<div class="feedback mal"><h4>❌ Casi... La respuesta correcta era: <b>${respuestaCorrecta}</b></h4><p>${p.expl}</p></div>`; }
@@ -919,12 +941,14 @@ function finalizarLeccion(){
   const total=leccionActual.preguntas.length, xpG=20+aciertos*5, pct=Math.round(aciertos/total*100);
   estado.xp+=xpG;
   const hoy=new Date().toDateString();
+  estado.xpPorDia[hoy] = (estado.xpPorDia[hoy]||0) + xpG;
   if(estado.ultimoDia!==hoy){ estado.racha++; estado.ultimoDia=hoy; }
   estado.leccionesHoy++;
   const prev=estado.leccionesCompletadas[leccionActual.id];
   if(!prev||aciertos>prev.mejorAciertos) estado.leccionesCompletadas[leccionActual.id]={veces:(prev?prev.veces:0)+1,mejorAciertos:aciertos};
   else estado.leccionesCompletadas[leccionActual.id].veces++;
   guardarEstado(); actualizarStats(); actualizarBotonesNav();
+  playSound("completar");
 
   const dom=dominioLeccion(leccionActual.id);
   document.getElementById("res-xp").textContent="+"+xpG;
@@ -993,6 +1017,8 @@ function mostrarProgreso(){
     html+=`<div class="medalla ${ok?"":"no"} animar" style="animation-delay:${i*0.04}s"><div class="ico">${m.ico}</div><div class="nom">${m.nom}</div><div class="desc">${m.desc}</div></div>`;
   });
   document.getElementById("medallas-grid").innerHTML=html;
+  renderGraficoSemanal();
+  renderRepaso();
   mostrar("pantalla-progreso");
 }
 
@@ -1034,6 +1060,10 @@ function mostrarPerfil(){
     </div>`;
   });
   document.getElementById("perfil-areas").innerHTML=htmlAreas;
+  document.querySelectorAll(".btn-meta").forEach(b=>{
+    b.classList.toggle("activo", parseInt(b.dataset.meta)===estado.metaDiaria);
+  });
+  document.getElementById("btn-sonido").textContent = estado.sonido ? "🔊 Sonido: Activado" : "🔇 Sonido: Desactivado";
   mostrar("pantalla-perfil");
 }
 function borrarProgreso(){
@@ -1174,6 +1204,38 @@ function descargarResumen(){
 }
 
 // ============================================================
+//  SISTEMA DE SONIDOS (Web Audio API)
+// ============================================================
+let audioCtx = null;
+function playSound(tipo){
+  if(!estado.sonido) return;
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    const t = audioCtx.currentTime;
+    if(tipo==="bien"){
+      o.frequency.setValueAtTime(523.25,t); o.frequency.setValueAtTime(659.25,t+0.08); o.frequency.setValueAtTime(783.99,t+0.16);
+      g.gain.setValueAtTime(0.15,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+      o.start(t); o.stop(t+0.3);
+    } else if(tipo==="mal"){
+      o.type="sawtooth"; o.frequency.setValueAtTime(200,t); o.frequency.exponentialRampToValueAtTime(100,t+0.25);
+      g.gain.setValueAtTime(0.1,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+      o.start(t); o.stop(t+0.3);
+    } else if(tipo==="completar"){
+      const notas=[523.25,659.25,783.99,1046.5];
+      notas.forEach((f,i)=>{
+        const oo=audioCtx.createOscillator(), gg=audioCtx.createGain();
+        oo.connect(gg); gg.connect(audioCtx.destination);
+        oo.frequency.value=f; gg.gain.setValueAtTime(0.12,t+i*0.1); gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.1+0.25);
+        oo.start(t+i*0.1); oo.stop(t+i*0.1+0.25);
+      });
+      return;
+    }
+  }catch(e){}
+}
+
+// ============================================================
 //  VIDEO DE REFUERZO + HERO
 // ============================================================
 function abrirVideo(){
@@ -1185,6 +1247,69 @@ function continuarAprendiendo(){
   const prox = encontrarProximaLeccion();
   if(prox) empezarLeccion(prox);
   else mostrarUnidades();
+}
+function setMeta(n){
+  estado.metaDiaria = n; guardarEstado(); actualizarStats();
+  document.querySelectorAll(".btn-meta").forEach(b=>{
+    b.classList.toggle("activo", parseInt(b.dataset.meta)===n);
+  });
+}
+function toggleSonido(){
+  estado.sonido = !estado.sonido; guardarEstado();
+  document.getElementById("btn-sonido").textContent = estado.sonido ? "🔊 Sonido: Activado" : "🔇 Sonido: Desactivado";
+  if(estado.sonido) playSound("bien");
+}
+function renderGraficoSemanal(){
+  const dias = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+  const hoy = new Date();
+  const cont = document.getElementById("grafico-semanal");
+  let maxXp = 10;
+  const datos = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date(hoy); d.setDate(d.getDate()-i);
+    const xp = estado.xpPorDia[d.toDateString()] || 0;
+    datos.push({dia: dias[(d.getDay()+6)%7], xp, esHoy: i===0});
+    if(xp>maxXp) maxXp=xp;
+  }
+  let html="";
+  datos.forEach(d=>{
+    const h = Math.max(4, Math.round(d.xp/maxXp*130));
+    html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;">
+      <div style="font-size:11px;font-weight:900;color:${d.xp>0?'var(--azul)':'var(--gris-osc)'};">${d.xp>0?d.xp:''}</div>
+      <div style="width:100%;max-width:36px;height:${h}px;background:${d.esHoy?'var(--verde)':'var(--azul)'};border-radius:8px 8px 4px 4px;min-height:4px;transition:height .5s;"></div>
+      <div style="font-size:11px;font-weight:800;color:${d.esHoy?'var(--verde-osc)':'var(--texto-claro)'};margin-top:6px;">${d.dia}${d.esHoy?' •':''}</div>
+    </div>`;
+  });
+  cont.innerHTML = html;
+}
+function renderRepaso(){
+  const cont = document.getElementById("zona-repaso");
+  const candidatas = [];
+  for(const id in estado.leccionesCompletadas){
+    const l = buscarLeccion(id); if(!l) continue;
+    const r = estado.leccionesCompletadas[id];
+    const pct = r.mejorAciertos / l.preguntas.length;
+    if(pct < 1) candidatas.push({id, titulo:l.titulo, pct});
+  }
+  candidatas.sort((a,b)=>a.pct-b.pct);
+  if(candidatas.length===0){
+    cont.innerHTML = `<div style="background:var(--verde-claro);border-radius:14px;padding:16px;color:var(--verde-osc);font-weight:800;text-align:center;">🎉 ¡No tienes temas para repasar! Los dominaste todos.</div>`;
+    return;
+  }
+  let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">`;
+  candidatas.slice(0,4).forEach(c=>{
+    const pct = Math.round(c.pct*100);
+    html += `<div style="background:var(--blanco);border-radius:12px;padding:12px 14px;box-shadow:var(--sombra);display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="empezarLeccion('${c.id}')">
+      <span style="font-size:22px;">🔁</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:900;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.titulo}</div>
+        <div style="font-size:11px;color:var(--texto-claro);font-weight:800;">Dominio: ${pct}%</div>
+      </div>
+      <span style="font-size:11px;font-weight:900;background:var(--naranja-claro);color:#b8860b;padding:4px 8px;border-radius:8px;">Repasar</span>
+    </div>`;
+  });
+  html += `</div>`;
+  cont.innerHTML = html;
 }
 
 // ============================================================
