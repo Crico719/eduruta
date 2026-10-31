@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduRuta — Aprende Matemática a tu ritmo</title>
+<style>
+  :root{
+    --verde:#58cc02; --verde-osc:#46a302; --verde-claro:#d7ffb8;
+    --azul:#1cb0f6; --azul-osc:#1899d6; --azul-claro:#ddf4ff;
+    --naranja:#ff9600; --rojo:#ff4b4b; --morado:#ce82ff;
+    --gris:#e5e5e5; --gris-osc:#afafaf; --texto:#3c3c3c; --texto-claro:#777;
+    --fondo:#f7f7f7; --blanco:#fff;
+    --sombra:0 4px 0 rgba(0,0,0,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Nunito','Segoe UI',system-ui,sans-serif;}
+  body{background:var(--fondo);color:var(--texto);min-height:100vh;overflow-x:hidden;}
+  button{cursor:pointer;font-family:inherit;border:none;outline:none;}
+  .oculto{display:none!important;}
+
+  /* ===== BARRA SUPERIOR ===== */
+  .topbar{background:var(--blanco);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.06);position:sticky;top:0;z-index:50;}
+  .logo{font-size:24px;font-weight:900;color:var(--verde);display:flex;align-items:center;gap:8px;}
+  .logo .sprout{font-size:28px;}
+  .stats{display:flex;gap:18px;font-weight:800;font-size:15px;}
+  .stat{display:flex;align-items:center;gap:5px;}
+  .stat .ico{font-size:18px;}
+  .stat.fire{color:var(--naranja);} .stat.xp{color:var(--azul);} .stat.lvl{color:var(--morado);}
+
+  /* ===== CONTENEDOR ===== */
+  .contenedor{max-width:720px;margin:0 auto;padding:24px 16px 80px;}
+
+  /* ===== PANTALLA INICIO ===== */
+  .saludo{text-align:center;margin-bottom:24px;}
+  .saludo h1{font-size:28px;font-weight:900;margin-bottom:6px;}
+  .saludo p{color:var(--texto-claro);font-size:15px;}
+  .meta-hoy{background:linear-gradient(135deg,var(--azul),#0a8fd6);color:#fff;border-radius:16px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--sombra);}
+  .meta-hoy .txt{font-weight:800;font-size:15px;}
+  .meta-hoy .barra{flex:1;margin:0 14px;height:10px;background:rgba(255,255,255,.3);border-radius:5px;overflow:hidden;}
+  .meta-hoy .relleno{height:100%;background:#fff;border-radius:5px;transition:width .5s;}
+  .materias{display:grid;grid-template-columns:1fr;gap:14px;}
+  .materia{background:var(--blanco);border-radius:16px;padding:18px;display:flex;align-items:center;gap:16px;box-shadow:var(--sombra);cursor:pointer;transition:transform .15s;position:relative;overflow:hidden;}
+  .materia:hover{transform:translateY(-2px);}
+  .materia .icono{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:30px;flex-shrink:0;}
+  .materia.mate .icono{background:var(--azul-claro);}
+  .materia.cien .icono{background:#ffe8d6;}
+  .materia.comu .icono{background:#f3e8ff;}
+  .materia.soci .icono{background:#ffe0e0;}
+  .materia .info{flex:1;}
+  .materia .info h3{font-size:18px;font-weight:900;margin-bottom:3px;}
+  .materia .info p{font-size:13px;color:var(--texto-claro);margin-bottom:8px;}
+  .materia .prog{height:8px;background:var(--gris);border-radius:4px;overflow:hidden;}
+  .materia .prog .rell{height:100%;border-radius:4px;transition:width .5s;}
+  .materia.mate .rell{background:var(--azul);}
+  .materia.cien .rell{background:var(--naranja);}
+  .materia.comu .rell{background:var(--morado);}
+  .materia.soci .rell{background:var(--rojo);}
+  .materia.bloqueada{opacity:.55;cursor:not-allowed;}
+  .materia.bloqueada::after{content:"PRÓXIMAMENTE";position:absolute;top:10px;right:12px;background:var(--gris);color:var(--texto-claro);font-size:10px;font-weight:900;padding:3px 8px;border-radius:6px;letter-spacing:.5px;}
+
+  /* ===== MAPA DE UNIDADES ===== */
+  .volver{background:none;color:var(--texto-claro);font-weight:800;font-size:15px;display:flex;align-items:center;gap:6px;margin-bottom:16px;padding:6px 0;}
+  .titulo-seccion{font-size:22px;font-weight:900;margin-bottom:4px;}
+  .subtitulo-seccion{color:var(--texto-claro);font-size:14px;margin-bottom:24px;}
+  .unidad{background:var(--blanco);border-radius:16px;padding:16px 18px;margin-bottom:14px;box-shadow:var(--sombra);}
+  .unidad .head{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .unidad .num{width:36px;height:36px;border-radius:50%;background:var(--azul-claro);color:var(--azul-osc);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex-shrink:0;}
+  .unidad .head h3{font-size:16px;font-weight:900;flex:1;}
+  .unidad .head .estado{font-size:12px;font-weight:800;padding:4px 10px;border-radius:20px;}
+  .estado.done{background:var(--verde-claro);color:var(--verde-osc);}
+  .estado.doing{background:#fff3cd;color:#b8860b;}
+  .estado.lock{background:var(--gris);color:var(--texto-claro);}
+  .lecciones{display:flex;gap:10px;flex-wrap:wrap;}
+  .leccion-btn{background:var(--gris);color:var(--texto-claro);padding:10px 16px;border-radius:12px;font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px;transition:all .15s;}
+  .leccion-btn.disponible{background:var(--verde);color:#fff;box-shadow:0 3px 0 var(--verde-osc);}
+  .leccion-btn.disponible:hover{transform:translateY(-1px);}
+  .leccion-btn.completada{background:var(--verde-claro);color:var(--verde-osc);}
+  .leccion-btn.bloqueada{cursor:not-allowed;}
+
+  /* ===== PANTALLA LECCIÓN ===== */
+  .leccion-top{display:flex;align-items:center;gap:14px;margin-bottom:28px;}
+  .corazones{display:flex;gap:3px;font-size:20px;}
+  .prog-leccion{flex:1;height:14px;background:var(--gris);border-radius:7px;overflow:hidden;}
+  .prog-leccion .rell{height:100%;background:var(--verde);border-radius:7px;transition:width .4s;}
+  .pregunta-num{font-size:13px;font-weight:800;color:var(--texto-claro);}
+  .explicacion{background:var(--azul-claro);border-left:5px solid var(--azul);border-radius:12px;padding:18px 20px;margin-bottom:24px;font-size:15px;line-height:1.6;}
+  .explicacion h4{color:var(--azul-osc);margin-bottom:8px;font-size:16px;}
+  .explicacion .formula{background:#fff;padding:8px 14px;border-radius:8px;display:inline-block;margin:6px 0;font-weight:800;font-size:17px;}
+  .pregunta-texto{font-size:20px;font-weight:900;margin-bottom:20px;line-height:1.4;}
+  .opciones{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
+  .opcion{background:var(--blanco);border:2px solid var(--gris);border-radius:14px;padding:16px;font-size:17px;font-weight:800;text-align:center;transition:all .15s;box-shadow:0 3px 0 var(--gris);}
+  .opcion:hover:not(.seleccionada):not(.correcta):not(.incorrecta){border-color:var(--azul);color:var(--azul);}
+  .opcion.seleccionada{border-color:var(--azul);background:var(--azul-claro);color:var(--azul-osc);box-shadow:0 3px 0 var(--azul);}
+  .opcion.correcta{border-color:var(--verde);background:var(--verde-claro);color:var(--verde-osc);box-shadow:0 3px 0 var(--verde);}
+  .opcion.incorrecta{border-color:var(--rojo);background:#ffe5e5;color:#c0392b;box-shadow:0 3px 0 var(--rojo);}
+  .feedback{border-radius:14px;padding:18px 20px;margin-bottom:20px;animation:slideUp .3s;}
+  .feedback.bien{background:var(--verde-claro);}
+  .feedback.mal{background:#ffe5e5;}
+  .feedback h4{font-size:17px;font-weight:900;margin-bottom:6px;}
+  .feedback.bien h4{color:var(--verde-osc);}
+  .feedback.mal h4{color:#c0392b;}
+  .feedback p{font-size:14px;line-height:1.5;}
+  @keyframes slideUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  .btn-continuar{width:100%;background:var(--verde);color:#fff;padding:16px;border-radius:14px;font-size:17px;font-weight:900;box-shadow:0 4px 0 var(--verde-osc);transition:all .1s;letter-spacing:.5px;}
+  .btn-continuar:active{transform:translateY(2px);box-shadow:0 2px 0 var(--verde-osc);}
+  .btn-continuar:disabled{background:var(--gris);box-shadow:0 4px 0 #ccc;color:var(--texto-claro);cursor:not-allowed;}
+
+  /* ===== PANTALLA RESULTADO ===== */
+  .resultado{text-align:center;padding:40px 20px;animation:pop .5s;}
+  @keyframes pop{0%{transform:scale(.5);opacity:0;}70%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+  .resultado .trofeo{font-size:80px;margin-bottom:16px;animation:bounce 1s infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+  .resultado h2{font-size:28px;font-weight:900;margin-bottom:8px;}
+  .resultado p{color:var(--texto-claro);margin-bottom:24px;font-size:15px;}
+  .resumen{display:flex;justify-content:center;gap:16px;margin-bottom:32px;flex-wrap:wrap;}
+  .resumen .item{background:var(--blanco);border-radius:14px;padding:16px 24px;box-shadow:var(--sombra);min-width:110px;}
+  .resumen .item .val{font-size:24px;font-weight:900;}
+  .resumen .item .lbl{font-size:12px;color:var(--texto-claro);font-weight:800;text-transform:uppercase;letter-spacing:.5px;}
+  .resumen .item.xp .val{color:var(--azul);}
+  .resumen .item.acc .val{color:var(--verde);}
+  .resumen .item.cor .val{color:var(--rojo);}
+  .btn-accion{padding:16px 32px;border-radius:14px;font-size:16px;font-weight:900;margin:6px;}
+  .btn-accion.primario{background:var(--verde);color:#fff;box-shadow:0 4px 0 var(--verde-osc);}
+  .btn-accion.secundario{background:var(--blanco);color:var(--texto);border:2px solid var(--gris);}
+
+  /* ===== CONFETI ===== */
+  .confeti{position:fixed;top:-10px;width:10px;height:10px;z-index:100;pointer-events:none;animation:caer 3s linear forwards;}
+  @keyframes caer{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+
+  /* ===== PANTALLA SIN CORAZONES ===== */
+  .sin-vidas{text-align:center;padding:60px 20px;}
+  .sin-vidas .ico{font-size:70px;margin-bottom:16px;}
+  .sin-vidas h2{font-size:24px;font-weight:900;margin-bottom:10px;}
+  .sin-vidas p{color:var(--texto-claro);margin-bottom:28px;}
+
+  @media(max-width:520px){
+    .opciones{grid-template-columns:1fr;}
+    .stats{gap:10px;font-size:13px;}
+    .logo{font-size:20px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- BARRA SUPERIOR -->
+<div class="topbar">
+  <div class="logo"><span class="sprout">🌱</span> EduRuta</div>
+  <div class="stats">
+    <div class="stat fire"><span class="ico">🔥</span><span id="stat-racha">0</span></div>
+    <div class="stat xp"><span class="ico">⭐</span><span id="stat-xp">0</span></div>
+    <div class="stat lvl"><span class="ico">🏆</span>Nivel <span id="stat-nivel">1</span></div>
+  </div>
+</div>
+
+<div class="contenedor">
+
+  <!-- ===== PANTALLA: INICIO ===== -->
+  <div id="pantalla-inicio">
+    <div class="saludo">
+      <h1 id="saludo-texto">¡Hola! 👋</h1>
+      <p>Sigue tu ruta de aprendizaje, un paso a la vez.</p>
+    </div>
+    <div class="meta-hoy">
+      <span class="txt">🎯 Meta de hoy: 1 lección</span>
+      <div class="barra"><div class="relleno" id="meta-relleno" style="width:0%"></div></div>
+      <span class="txt" id="meta-texto">0/1</span>
+    </div>
+    <div class="materias">
+      <div class="materia mate" onclick="mostrarUnidades()">
+        <div class="icono">📘</div>
+        <div class="info">
+          <h3>Matemática — 1° Secundaria</h3>
+          <p>6 unidades · 12 lecciones</p>
+          <div class="prog"><div class="rell" id="prog-mate" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="materia cien bloqueada"><div class="icono">🔬</div><div class="info"><h3>Ciencia y Tecnología</h3><p>Próximamente</p><div class="prog"><div class="rell" style="width:0%"></div></div></div></div>
+      <div class="materia comu bloqueada"><div class="icono">✍️</div><div class="info"><h3>Comunicación</h3><p>Próximamente</p><div class="prog"><div class="rell" style="width:0%"></div></div></div></div>
+      <div class="materia soci bloqueada"><div class="icono">🏺</div><div class="info"><h3>Ciencias Sociales</h3><p>Próximamente</p><div class="prog"><div class="rell" style="width:0%"></div></div></div></div>
+    </div>
+    <p style="text-align:center;color:var(--texto-claro);font-size:12px;margin-top:28px;">EduRuta v1.0 · Hecho con 💚 para estudiantes de 1° y 2° de secundaria</p>
+  </div>
+
+  <!-- ===== PANTALLA: MAPA DE UNIDADES ===== -->
+  <div id="pantalla-unidades" class="oculto">
+    <button class="volver" onclick="mostrarInicio()">← Volver al inicio</button>
+    <h2 class="titulo-seccion">📘 Matemática — 1° Secundaria</h2>
+    <p class="subtitulo-seccion">Completa las lecciones en orden. Cada una te da +20 XP.</p>
+    <div id="lista-unidades"></div>
+  </div>
+
+  <!-- ===== PANTALLA: LECCIÓN ===== -->
+  <div id="pantalla-leccion" class="oculto">
+    <div class="leccion-top">
+      <button class="volver" style="margin:0;" onclick="salirLeccion()">✕</button>
+      <div class="prog-leccion"><div class="rell" id="prog-leccion-rell" style="width:0%"></div></div>
+      <div class="corazones" id="corazones-display">❤️❤️❤️</div>
+    </div>
+    <div id="contenido-leccion"></div>
+  </div>
+
+  <!-- ===== PANTALLA: RESULTADO ===== -->
+  <div id="pantalla-resultado" class="oculto">
+    <div class="resultado">
+      <div class="trofeo" id="res-emoji">🎉</div>
+      <h2 id="res-titulo">¡Lección completada!</h2>
+      <p id="res-subtitulo">Sigue así, vas por buen camino.</p>
+      <div class="resumen">
+        <div class="item xp"><div class="val" id="res-xp">+20</div><div class="lbl">XP ganados</div></div>
+        <div class="item acc"><div class="val" id="res-acc">100%</div><div class="lbl">Aciertos</div></div>
+        <div class="item cor"><div class="val" id="res-cor">3</div><div class="lbl">Corazones</div></div>
+      </div>
+      <button class="btn-accion primario" onclick="mostrarUnidades()">Continuar aprendiendo →</button>
+      <button class="btn-accion secundario" onclick="mostrarInicio()">Ir al inicio</button>
+    </div>
+  </div>
+
+  <!-- ===== PANTALLA: SIN VIDAS ===== -->
+  <div id="pantalla-sinvidas" class="oculto">
+    <div class="sin-vidas">
+      <div class="ico">💔</div>
+      <h2>Te quedaste sin corazones</h2>
+      <p>Repasa la explicación y vuelve a intentarlo. ¡Tú puedes!</p>
+      <button class="btn-accion primario" onclick="reintentarLeccion()">Reintentar lección</button>
+      <button class="btn-accion secundario" onclick="mostrarUnidades()">Volver al mapa</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  DATOS: UNIDADES Y LECCIONES — Matemática 1° Secundaria (Perú)
+// ============================================================
+const UNIDADES = [
+  {
+    id:1, titulo:"Números enteros",
+    lecciones:[
+      {
+        id:"u1l1", titulo:"¿Qué son los enteros?",
+        explicacion:`<h4>📖 Los números enteros</h4>
+          Incluyen a los <b>positivos</b> (1, 2, 3...), el <b>cero</b> (0) y los <b>negativos</b> (−1, −2, −3...).<br><br>
+          El <b>valor absoluto</b> de un número es su valor sin signo: |−5| = 5 y |+5| = 5.<br><br>
+          <span class="formula">−5 < −3 < 0 < 2 < 4</span><br>
+          <i>Entre más a la izquierda en la recta numérica, más pequeño es el número.</i>`,
+        preguntas:[
+          {q:"¿Cuál de estos es un número entero negativo?", opts:["+7","0","−4","1/2"], correcta:2,
+           expl:"Los enteros negativos llevan signo menos: −1, −2, −3... −4 es entero negativo. 1/2 es fracción, no entero."},
+          {q:"¿Cuál es el valor absoluto de |−8|?", opts:["−8","8","0","16"], correcta:1,
+           expl:"El valor absoluto siempre es positivo: |−8| = 8. Es la distancia del número al cero."},
+          {q:"¿Cuál número es MAYOR?", opts:["−10","−2","−5","−7"], correcta:1,
+           expl:"En los negativos, mientras más cerca del cero, mayor es el número. −2 > −5 > −7 > −10."},
+          {q:"¿Qué representa −5 grados?", opts:["5 grados sobre cero","5 grados bajo cero","No hay temperatura","Cinco veces cero"], correcta:1,
+           expl:"El signo negativo indica 'por debajo de cero'. −5°C significa 5 grados bajo cero."}
+        ]
+      },
+      {
+        id:"u1l2", titulo:"Sumar y restar enteros",
+        explicacion:`<h4>📖 Operaciones con signos</h4>
+          <b>Suma:</b> mismo signo → se suman y se deja el signo. Distinto signo → se restan y se deja el del mayor.<br><br>
+          <span class="formula">(+3) + (+2) = +5</span><br>
+          <span class="formula">(+7) + (−3) = +4</span><br><br>
+          <b>Restar</b> es sumar el opuesto: a − b = a + (−b)<br>
+          <span class="formula">5 − (−2) = 5 + 2 = 7</span>`,
+        preguntas:[
+          {q:"¿Cuánto es (+5) + (−2)?", opts:["+7","+3","−3","−7"], correcta:1,
+           expl:"Distinto signo: se restan (5−2=3) y se deja el signo del mayor (positivo). Resultado: +3."},
+          {q:"¿Cuánto es (−4) + (−6)?", opts:["+10","−2","−10","+2"], correcta:2,
+           expl:"Mismo signo (negativo): se suman 4+6=10 y se deja el signo negativo: −10."},
+          {q:"¿Cuánto es 8 − (−3)?", opts:["5","11","−5","−11"], correcta:1,
+           expl:"Restar un negativo es sumar: 8 − (−3) = 8 + 3 = 11."},
+          {q:"¿Cuánto es (−10) + (+7)?", opts:["+3","−17","+17","−3"], correcta:3,
+           expl:"Distinto signo: se restan 10−7=3 y se deja el signo del mayor (negativo): −3."}
+        ]
+      }
+    ]
+  },
+  {
+    id:2, titulo:"Fracciones",
+    lecciones:[
+      {
+        id:"u2l1", titulo:"Concepto y equivalentes",
+        explicacion:`<h4>📖 Partes de una fracción</h4>
+          <span class="formula">Numerador → 3/4 ← Denominador</span><br>
+          El denominador dice en cuántas partes se divide; el numerador, cuántas tomamos.<br><br>
+          <b>Fracciones equivalentes:</b> se obtienen multiplicando o dividiendo ambos por el mismo número.<br>
+          <span class="formula">1/2 = 2/4 = 3/6 = 4/8</span>`,
+        preguntas:[
+          {q:"En la fracción 5/8, ¿qué número es el denominador?", opts:["5","8","13","58"], correcta:1,
+           expl:"El denominador es el número de abajo: 8. Indica en cuántas partes iguales se divide la unidad."},
+          {q:"¿Cuál fracción es equivalente a 1/3?", opts:["2/6","2/3","3/3","1/6"], correcta:0,
+           expl:"Multiplicamos arriba y abajo por 2: 1×2=2 y 3×2=6 → 2/6. Ambas valen lo mismo."},
+          {q:"Si simplificas 4/8, ¿qué obtienes?", opts:["2/4","1/2","1/4","4/4"], correcta:1,
+           expl:"Dividimos ambos entre 4: 4÷4=1 y 8÷4=2 → 1/2. Es la fracción irreducible."},
+          {q:"¿Qué fracción representa la mitad de un todo?", opts:["1/4","1/3","1/2","2/3"], correcta:2,
+           expl:"La mitad significa dividir en 2 partes iguales y tomar 1: 1/2."}
+        ]
+      },
+      {
+        id:"u2l2", titulo:"Sumar y restar fracciones",
+        explicacion:`<h4>📖 Suma y resta de fracciones</h4>
+          <b>Mismo denominador:</b> se suman/restan los numeradores y se deja el mismo denominador.<br>
+          <span class="formula">2/7 + 3/7 = 5/7</span><br><br>
+          <b>Distinto denominador:</b> primero se busca un denominador común (mcm), luego se opera.<br>
+          <span class="formula">1/2 + 1/3 = 3/6 + 2/6 = 5/6</span>`,
+        preguntas:[
+          {q:"¿Cuánto es 2/5 + 1/5?", opts:["3/10","3/5","1/5","2/10"], correcta:1,
+           expl:"Mismo denominador (5): se suman los numeradores 2+1=3. Resultado: 3/5."},
+          {q:"¿Cuánto es 3/4 − 1/4?", opts:["2/8","1/2","4/4","1/4"], correcta:1,
+           expl:"Mismo denominador: 3−1=2 → 2/4. Simplificando: 1/2."},
+          {q:"¿Cuánto es 1/2 + 1/4?", opts:["2/6","3/4","1/6","2/4"], correcta:1,
+           expl:"Denominador común 4: 1/2 = 2/4. Luego 2/4 + 1/4 = 3/4."},
+          {q:"¿Cuánto es 2/3 + 1/6?", opts:["3/9","5/6","3/6","1/2"], correcta:1,
+           expl:"Denominador común 6: 2/3 = 4/6. Luego 4/6 + 1/6 = 5/6."}
+        ]
+      }
+    ]
+  },
+  {
+    id:3, titulo:"Números decimales",
+    lecciones:[
+      {
+        id:"u3l1", titulo:"Lectura y conversión",
+        explicacion:`<h4>📖 Números decimales</h4>
+          Tienen una <b>parte entera</b> y una <b>parte decimal</b> separadas por una coma o punto.<br>
+          <span class="formula">3.25 → 3 enteros, 2 décimas, 5 centésimas</span><br><br>
+          <b>Convertir fracción a decimal:</b> divide el numerador entre el denominador.<br>
+          <span class="formula">1/2 = 0.5 &nbsp;&nbsp; 1/4 = 0.25 &nbsp;&nbsp; 3/4 = 0.75</span>`,
+        preguntas:[
+          {q:"¿Cómo se lee el número 2.5?", opts:["Dos enteros y cinco centésimas","Dos enteros y cinco décimas","Veinticinco","Dos punto cinco mil"], correcta:1,
+           expl:"El 5 está en el primer lugar decimal → son décimas. Se lee: dos enteros y cinco décimas."},
+          {q:"¿Cuánto es 1/4 en decimal?", opts:["0.2","0.25","0.4","0.5"], correcta:1,
+           expl:"1 dividido entre 4 = 0.25. Es un cuarto de unidad."},
+          {q:"¿Cuál decimal es MAYOR?", opts:["0.09","0.1","0.099","0.08"], correcta:1,
+           expl:"0.1 = 0.10, que es mayor que 0.09 y 0.099. Compara dígito por dígito desde la izquierda."},
+          {q:"¿Qué fracción equivale a 0.5?", opts:["1/5","1/2","1/4","5/1"], correcta:1,
+           expl:"0.5 = 5/10 = 1/2. Es la mitad de la unidad."}
+        ]
+      },
+      {
+        id:"u3l2", titulo:"Operaciones con decimales",
+        explicacion:`<h4>📖 Sumar y restar decimales</h4>
+          Alinea los puntos decimales y opera como con enteros.<br>
+          <span class="formula">2.3 + 1.45 = 3.75</span><br><br>
+          <b>Multiplicar:</b> multiplica como enteros y cuenta los decimales de ambos factores.<br>
+          <span class="formula">1.2 × 2 = 2.4</span>`,
+        preguntas:[
+          {q:"¿Cuánto es 1.5 + 2.3?", opts:["3.8","3.5","2.8","4.8"], correcta:0,
+           expl:"Alineando los decimales: 1.5 + 2.3 = 3.8."},
+          {q:"¿Cuánto es 5.7 − 2.4?", opts:["3.3","2.3","3.7","7.11"], correcta:0,
+           expl:"5.7 − 2.4 = 3.3. Resta parte entera con parte entera y decimal con decimal."},
+          {q:"¿Cuánto es 0.5 × 4?", opts:["0.2","2","20","0.02"], correcta:1,
+           expl:"0.5 es la mitad. La mitad de 4 es 2. También: 5×4=20 con un decimal → 2.0 = 2."},
+          {q:"¿Cuánto es 3.25 + 1.75?", opts:["4.5","5","4.0","5.5"], correcta:1,
+           expl:"3.25 + 1.75 = 5.00. Los centésimos suman 100 → 1 entero más. Total: 5."}
+        ]
+      }
+    ]
+  },
+  {
+    id:4, titulo:"Expresiones algebraicas",
+    lecciones:[
+      {
+        id:"u4l1", titulo:"Variables y términos semejantes",
+        explicacion:`<h4>📖 El lenguaje del álgebra</h4>
+          Una <b>variable</b> es una letra que representa un número desconocido (x, y, a...).<br><br>
+          <b>Términos semejantes:</b> tienen la misma letra con el mismo exponente. Se pueden sumar/restar.<br>
+          <span class="formula">3x + 2x = 5x</span><br>
+          <span class="formula">5y − 2y = 3y</span><br>
+          <i>3x y 2y NO son semejantes (distinta letra).</i>`,
+        preguntas:[
+          {q:"¿Qué es una variable en álgebra?", opts:["Un número fijo","Una letra que representa un número","Un signo de operación","El resultado final"], correcta:1,
+           expl:"Una variable es una letra (como x o y) que representa un número que aún no conocemos."},
+          {q:"¿Cuánto es 4x + 3x?", opts:["7x","12x","7x²","12"], correcta:0,
+           expl:"Son términos semejantes (misma letra x). Se suman los coeficientes: 4+3=7 → 7x."},
+          {q:"¿Cuál par de términos son semejantes?", opts:["2x y 3y","5a y 5b","4m y 7m","3x y 3x²"], correcta:2,
+           expl:"4m y 7m tienen la misma letra (m) con el mismo exponente (1). Los demás tienen letras distintas o distinto exponente."},
+          {q:"¿Cuánto es 8y − 5y?", opts:["3y","13y","3","40y"], correcta:0,
+           expl:"Términos semejantes: se restan los coeficientes 8−5=3 → 3y."}
+        ]
+      },
+      {
+        id:"u4l2", titulo:"Valor numérico",
+        explicacion:`<h4>📖 Calcular el valor numérico</h4>
+          Consiste en <b>reemplazar</b> la variable por un número dado y operar.<br><br>
+          <span class="formula">Si x = 3, entonces 2x + 1 = 2(3) + 1 = 7</span><br><br>
+          <i>Recuerda: 2x significa 2 multiplicado por x.</i>`,
+        preguntas:[
+          {q:"Si x = 5, ¿cuánto vale 3x?", opts:["8","15","35","2"], correcta:1,
+           expl:"3x = 3 × x. Si x=5 → 3×5 = 15."},
+          {q:"Si x = 2, ¿cuánto vale x + 7?", opts:["5","9","14","72"], correcta:1,
+           expl:"Reemplazas x por 2: 2 + 7 = 9."},
+          {q:"Si a = 4, ¿cuánto vale 2a + 3?", opts:["9","11","14","24"], correcta:1,
+           expl:"2a = 2×4 = 8. Luego 8 + 3 = 11."},
+          {q:"Si n = 10, ¿cuánto vale n − 6?", opts:["16","4","60","6"], correcta:1,
+           expl:"Reemplazas n por 10: 10 − 6 = 4."}
+        ]
+      }
+    ]
+  },
+  {
+    id:5, titulo:"Ecuaciones de primer grado",
+    lecciones:[
+      {
+        id:"u5l1", titulo:"Resolver paso a paso",
+        explicacion:`<h4>📖 Ecuaciones de primer grado</h4>
+          Una ecuación es una igualdad con una incógnita. Se resuelve <b>aislando la x</b>.<br><br>
+          <b>Regla de oro:</b> lo que sumas de un lado, lo restas del otro; lo que multiplicas, lo divides.<br>
+          <span class="formula">x + 5 = 12 → x = 12 − 5 → x = 7</span><br>
+          <span class="formula">3x = 15 → x = 15 ÷ 3 → x = 5</span>`,
+        preguntas:[
+          {q:"¿Cuál es la solución de x + 4 = 10?", opts:["x = 14","x = 6","x = 4","x = 40"], correcta:1,
+           expl:"Aislamos x: x = 10 − 4 → x = 6. Comprobación: 6 + 4 = 10 ✓"},
+          {q:"¿Cuál es la solución de 2x = 14?", opts:["x = 12","x = 28","x = 7","x = 16"], correcta:2,
+           expl:"Dividimos ambos lados entre 2: x = 14 ÷ 2 → x = 7."},
+          {q:"¿Cuál es la solución de x − 3 = 8?", opts:["x = 5","x = 11","x = 24","x = 8/3"], correcta:1,
+           expl:"Sumamos 3 a ambos lados: x = 8 + 3 → x = 11."},
+          {q:"¿Cuál es la solución de 3x + 1 = 10?", opts:["x = 3","x = 9","x = 4","x = 11/3"], correcta:0,
+           expl:"Restamos 1: 3x = 9. Dividimos entre 3: x = 3. Comprobación: 3(3)+1 = 10 ✓"}
+        ]
+      },
+      {
+        id:"u5l2", titulo:"Problemas con ecuaciones",
+        explicacion:`<h4>📖 Traducir palabras a ecuaciones</h4>
+          Identifica la incógnita y escribe la ecuación.<br><br>
+          <i>Ejemplo: "Si a un número le sumas 5 y obtienes 12..."</i><br>
+          <span class="formula">x + 5 = 12 → x = 7</span><br><br>
+          <i>"El triple de un número es 18..."</i><br>
+          <span class="formula">3x = 18 → x = 6</span>`,
+        preguntas:[
+          {q:"Si a un número le sumas 7 y obtienes 15, ¿cuál es el número?", opts:["8","22","7","10"], correcta:0,
+           expl:"x + 7 = 15 → x = 15 − 7 → x = 8."},
+          {q:"El doble de un número es 24. ¿Cuál es el número?", opts:["12","48","22","26"], correcta:0,
+           expl:"El doble = 2x. Entonces 2x = 24 → x = 12."},
+          {q:"Si a un número le restas 9 y obtienes 6, ¿cuál es el número?", opts:["3","15","54","9/6"], correcta:1,
+           expl:"x − 9 = 6 → x = 6 + 9 → x = 15."},
+          {q:"Compraste 3 lápices iguales y pagaste S/ 6 en total. ¿Cuánto cuesta cada lápiz?", opts:["S/ 2","S/ 3","S/ 18","S/ 9"], correcta:0,
+           expl:"3x = 6 → x = 6 ÷ 3 → x = 2. Cada lápiz cuesta S/ 2."}
+        ]
+      }
+    ]
+  },
+  {
+    id:6, titulo:"Geometría: perímetro y área",
+    lecciones:[
+      {
+        id:"u6l1", titulo:"Perímetro de figuras",
+        explicacion:`<h4>📖 El perímetro</h4>
+          Es la <b>suma de todos los lados</b> de una figura.<br><br>
+          <span class="formula">Cuadrado: P = 4 × lado</span><br>
+          <span class="formula">Rectángulo: P = 2×base + 2×altura</span><br>
+          <span class="formula">Triángulo: P = lado₁ + lado₂ + lado₃</span>`,
+        preguntas:[
+          {q:"¿Cuál es el perímetro de un cuadrado de lado 5 cm?", opts:["10 cm","20 cm","25 cm","15 cm"], correcta:1,
+           expl:"Cuadrado tiene 4 lados iguales: P = 4 × 5 = 20 cm."},
+          {q:"¿Cuál es el perímetro de un rectángulo de base 6 y altura 4?", opts:["10","20","24","12"], correcta:1,
+           expl:"P = 2×6 + 2×4 = 12 + 8 = 20."},
+          {q:"Un triángulo tiene lados 3, 4 y 5 cm. ¿Cuál es su perímetro?", opts:["12 cm","60 cm","7 cm","9 cm"], correcta:0,
+           expl:"Se suman los tres lados: 3 + 4 + 5 = 12 cm."},
+          {q:"¿Qué mide el perímetro?", opts:["El espacio interior","La suma de los lados","La altura","El color"], correcta:1,
+           expl:"El perímetro es la medida del contorno: la suma de las longitudes de todos sus lados."}
+        ]
+      },
+      {
+        id:"u6l2", titulo:"Área de figuras planas",
+        explicacion:`<h4>📖 El área</h4>
+          Es la <b>superficie</b> que ocupa una figura, se mide en unidades cuadradas (cm², m²).<br><br>
+          <span class="formula">Cuadrado: A = lado × lado</span><br>
+          <span class="formula">Rectángulo: A = base × altura</span><br>
+          <span class="formula">Triángulo: A = (base × altura) ÷ 2</span>`,
+        preguntas:[
+          {q:"¿Cuál es el área de un cuadrado de lado 4 cm?", opts:["8 cm²","16 cm²","12 cm²","20 cm²"], correcta:1,
+           expl:"A = lado × lado = 4 × 4 = 16 cm²."},
+          {q:"¿Cuál es el área de un rectángulo de base 5 y altura 3?", opts:["8","15","16","10"], correcta:1,
+           expl:"A = base × altura = 5 × 3 = 15."},
+          {q:"¿Cuál es el área de un triángulo de base 6 y altura 4?", opts:["24","12","10","48"], correcta:1,
+           expl:"A = (base × altura) ÷ 2 = (6 × 4) ÷ 2 = 24 ÷ 2 = 12."},
+          {q:"El área se mide en...", opts:["Centímetros (cm)","Unidades cuadradas (cm²)","Litros","Grados"], correcta:1,
+           expl:"El área es superficie, se mide en unidades cuadradas como cm² o m². El perímetro va en cm o m."}
+        ]
+      }
+    ]
+  }
+];
+
+// ============================================================
+//  ESTADO DEL JUEGO (guardado en localStorage)
+// ============================================================
+let estado = {
+  xp: 0,
+  racha: 0,
+  ultimoDia: null,
+  leccionesCompletadas: {}, // {idLeccion: {veces, mejorAciertos}}
+  leccionesHoy: 0,
+  diaHoy: null
+};
+
+function cargarEstado(){
+  try{
+    const guardado = localStorage.getItem("eduruta_estado");
+    if(guardado) estado = JSON.parse(guardado);
+  }catch(e){}
+  // Actualizar racha por día
+  const hoy = new Date().toDateString();
+  if(estado.diaHoy !== hoy){
+    if(estado.ultimoDia){
+      const ayer = new Date(); ayer.setDate(ayer.getDate()-1);
+      if(estado.ultimoDia !== ayer.toDateString() && estado.ultimoDia !== hoy){
+        // se rompió la racha
+        if(estado.leccionesHoy === 0) estado.racha = 0;
+      }
+    }
+    estado.leccionesHoy = 0;
+    estado.diaHoy = hoy;
+  }
+  guardarEstado();
+}
+function guardarEstado(){
+  try{ localStorage.setItem("eduruta_estado", JSON.stringify(estado)); }catch(e){}
+}
+function nivel(){ return Math.floor(estado.xp / 100) + 1; }
+function totalLecciones(){
+  let t=0; UNIDADES.forEach(u=>t+=u.lecciones.length); return t;
+}
+function leccionesCompletadasCount(){
+  return Object.keys(estado.leccionesCompletadas).length;
+}
+
+// ============================================================
+//  NAVEGACIÓN ENTRE PANTALLAS
+// ============================================================
+function mostrar(id){
+  ["pantalla-inicio","pantalla-unidades","pantalla-leccion","pantalla-resultado","pantalla-sinvidas"].forEach(p=>{
+    document.getElementById(p).classList.add("oculto");
+  });
+  document.getElementById(id).classList.remove("oculto");
+  window.scrollTo(0,0);
+}
+function actualizarStats(){
+  document.getElementById("stat-racha").textContent = estado.racha;
+  document.getElementById("stat-xp").textContent = estado.xp;
+  document.getElementById("stat-nivel").textContent = nivel();
+  const total = totalLecciones();
+  const comp = leccionesCompletadasCount();
+  const pct = total>0 ? Math.round(comp/total*100) : 0;
+  document.getElementById("prog-mate").style.width = pct+"%";
+  document.getElementById("meta-relleno").style.width = Math.min(estado.leccionesHoy,1)*100+"%";
+  document.getElementById("meta-texto").textContent = Math.min(estado.leccionesHoy,1)+"/1";
+  const hora = new Date().getHours();
+  let saludo = "¡Hola! 👋";
+  if(hora<12) saludo = "¡Buenos días! ☀️";
+  else if(hora<19) saludo = "¡Buenas tardes! 🌤️";
+  else saludo = "¡Buenas noches! 🌙";
+  document.getElementById("saludo-texto").textContent = saludo;
+}
+function mostrarInicio(){ actualizarStats(); mostrar("pantalla-inicio"); }
+
+// ============================================================
+//  MAPA DE UNIDADES
+// ============================================================
+function leccionDisponible(unidadIdx, lecIdx){
+  // primera lección siempre disponible
+  if(unidadIdx===0 && lecIdx===0) return true;
+  // lección anterior de la misma unidad
+  if(lecIdx>0){
+    const prev = UNIDADES[unidadIdx].lecciones[lecIdx-1];
+    return !!estado.leccionesCompletadas[prev.id];
+  }
+  // primera lección de una unidad: requiere última lección de la unidad anterior
+  const prevUnidad = UNIDADES[unidadIdx-1];
+  const ultimaPrev = prevUnidad.lecciones[prevUnidad.lecciones.length-1];
+  return !!estado.leccionesCompletadas[ultimaPrev.id];
+}
+function mostrarUnidades(){
+  const cont = document.getElementById("lista-unidades");
+  let html = "";
+  UNIDADES.forEach((u, ui)=>{
+    let completadas = 0;
+    u.lecciones.forEach(l=>{ if(estado.leccionesCompletadas[l.id]) completadas++; });
+    let estadoTxt = "lock", estadoLbl = "Bloqueada";
+    if(completadas === u.lecciones.length){ estadoTxt="done"; estadoLbl="Completada ✓"; }
+    else if(completadas>0 || leccionDisponible(ui,0)){ estadoTxt="doing"; estadoLbl="En curso"; }
+
+    html += `<div class="unidad">
+      <div class="head">
+        <div class="num">${u.id}</div>
+        <h3>${u.titulo}</h3>
+        <span class="estado ${estadoTxt}">${estadoLbl}</span>
+      </div>
+      <div class="lecciones">`;
+    u.lecciones.forEach((l, li)=>{
+      const hecha = !!estado.leccionesCompletadas[l.id];
+      const disp = leccionDisponible(ui, li);
+      let cls = "bloqueada", icono = "🔒";
+      if(hecha){ cls="completada"; icono="✓"; }
+      else if(disp){ cls="disponible"; icono="▶"; }
+      html += `<button class="leccion-btn ${cls}" ${disp&&!hecha?`onclick="empezarLeccion('${l.id}')"`:""}>${icono} ${l.titulo}</button>`;
+    });
+    html += `</div></div>`;
+  });
+  cont.innerHTML = html;
+  mostrar("pantalla-unidades");
+}
+
+// ============================================================
+//  MOTOR DE LECCIÓN
+// ============================================================
+let leccionActual = null;
+let preguntaIdx = 0;
+let corazones = 3;
+let aciertos = 0;
+let respondido = false;
+
+function buscarLeccion(id){
+  for(const u of UNIDADES){
+    for(const l of u.lecciones){ if(l.id===id) return l; }
+  }
+  return null;
+}
+function empezarLeccion(id){
+  leccionActual = buscarLeccion(id);
+  if(!leccionActual) return;
+  preguntaIdx = 0;
+  corazones = 3;
+  aciertos = 0;
+  mostrarPregunta();
+  mostrar("pantalla-leccion");
+}
+function salirLeccion(){
+  if(confirm("¿Salir de la lección? Perderás tu progreso actual.")){
+    mostrarUnidades();
+  }
+}
+function reintentarLeccion(){
+  if(leccionActual) empezarLeccion(leccionActual.id);
+}
+function actualizarCorazones(){
+  let s = "";
+  for(let i=0;i<3;i++) s += i<corazones ? "❤️" : "🖤";
+  document.getElementById("corazones-display").textContent = s;
+}
+function mostrarPregunta(){
+  respondido = false;
+  actualizarCorazones();
+  const total = leccionActual.preguntas.length;
+  document.getElementById("prog-leccion-rell").style.width = (preguntaIdx/total*100)+"%";
+
+  const p = leccionActual.preguntas[preguntaIdx];
+  let html = "";
+  // Mostrar explicación solo en la primera pregunta
+  if(preguntaIdx === 0){
+    html += `<div class="explicacion">${leccionActual.explicacion}</div>`;
+  }
+  html += `<div class="pregunta-num">Pregunta ${preguntaIdx+1} de ${total}</div>
+    <div class="pregunta-texto">${p.q}</div>
+    <div class="opciones">`;
+  p.opts.forEach((opt, i)=>{
+    html += `<button class="opcion" id="opt-${i}" onclick="elegirOpcion(${i})">${opt}</button>`;
+  });
+  html += `</div>
+    <div id="feedback-zone"></div>
+    <button class="btn-continuar" id="btn-continuar" disabled onclick="siguientePregunta()">Comprobar</button>`;
+  document.getElementById("contenido-leccion").innerHTML = html;
+}
+let opcionElegida = -1;
+function elegirOpcion(i){
+  if(respondido) return;
+  opcionElegida = i;
+  document.querySelectorAll(".opcion").forEach((el,idx)=>{
+    el.classList.remove("seleccionada");
+    if(idx===i) el.classList.add("seleccionada");
+  });
+  const btn = document.getElementById("btn-continuar");
+  btn.disabled = false;
+  btn.textContent = "Comprobar";
+}
+function siguientePregunta(){
+  if(!respondido){
+    // Comprobar respuesta
+    respondido = true;
+    const p = leccionActual.preguntas[preguntaIdx];
+    const correcta = p.correcta;
+    const bien = opcionElegida === correcta;
+    document.querySelectorAll(".opcion").forEach((el,idx)=>{
+      el.classList.remove("seleccionada");
+      if(idx===correcta) el.classList.add("correcta");
+      else if(idx===opcionElegida) el.classList.add("incorrecta");
+    });
+    let fb = "";
+    if(bien){
+      aciertos++;
+      fb = `<div class="feedback bien"><h4>✅ ¡Correcto! +5 XP</h4><p>${p.expl}</p></div>`;
+    } else {
+      corazones--;
+      actualizarCorazones();
+      fb = `<div class="feedback mal"><h4>❌ Casi... La respuesta era: ${p.opts[correcta]}</h4><p>${p.expl}</p></div>`;
+    }
+    document.getElementById("feedback-zone").innerHTML = fb;
+    const btn = document.getElementById("btn-continuar");
+    if(corazones <= 0){
+      btn.textContent = "Ver resultado";
+      btn.onclick = function(){ mostrarSinVidas(); };
+    } else if(preguntaIdx >= leccionActual.preguntas.length-1){
+      btn.textContent = "Ver resultado";
+      btn.onclick = function(){ finalizarLeccion(); };
+    } else {
+      btn.textContent = "Siguiente →";
+      btn.onclick = function(){ preguntaIdx++; mostrarPregunta(); };
+    }
+    opcionElegida = -1;
+  }
+}
+function mostrarSinVidas(){
+  mostrar("pantalla-sinvidas");
+}
+function finalizarLeccion(){
+  const total = leccionActual.preguntas.length;
+  const xpGanado = 20 + aciertos*5;
+  const pct = Math.round(aciertos/total*100);
+
+  // Guardar progreso
+  estado.xp += xpGanado;
+  const hoy = new Date().toDateString();
+  if(estado.ultimoDia !== hoy){
+    estado.racha++;
+    estado.ultimoDia = hoy;
+  }
+  estado.leccionesHoy++;
+  const prev = estado.leccionesCompletadas[leccionActual.id];
+  if(!prev || aciertos > prev.mejorAciertos){
+    estado.leccionesCompletadas[leccionActual.id] = {veces:(prev?prev.veces:0)+1, mejorAciertos:aciertos};
+  } else {
+    estado.leccionesCompletadas[leccionActual.id].veces++;
+  }
+  guardarEstado();
+  actualizarStats();
+
+  // Mostrar resultado
+  document.getElementById("res-xp").textContent = "+"+xpGanado;
+  document.getElementById("res-acc").textContent = pct+"%";
+  document.getElementById("res-cor").textContent = corazones;
+  if(pct === 100){
+    document.getElementById("res-emoji").textContent = "👑";
+    document.getElementById("res-titulo").textContent = "¡Perfecto! Sin errores";
+    document.getElementById("res-subtitulo").textContent = "Dominaste esta lección. ¡Increíble!";
+    lanzarConfeti();
+  } else if(pct >= 75){
+    document.getElementById("res-emoji").textContent = "🎉";
+    document.getElementById("res-titulo").textContent = "¡Lección completada!";
+    document.getElementById("res-subtitulo").textContent = "Muy bien, sigue practicando para alcanzar el 100%.";
+    lanzarConfeti();
+  } else {
+    document.getElementById("res-emoji").textContent = "💪";
+    document.getElementById("res-titulo").textContent = "¡Completaste la lección!";
+    document.getElementById("res-subtitulo").textContent = "Repasa la explicación y vuelve a intentarlo para mejorar.";
+  }
+  mostrar("pantalla-resultado");
+}
+function lanzarConfeti(){
+  const colores = ["#58cc02","#1cb0f6","#ff9600","#ce82ff","#ff4b4b","#ffc800"];
+  for(let i=0;i<40;i++){
+    const c = document.createElement("div");
+    c.className = "confeti";
+    c.style.left = Math.random()*100+"vw";
+    c.style.background = colores[Math.floor(Math.random()*colores.length)];
+    c.style.animationDelay = Math.random()*0.8+"s";
+    c.style.borderRadius = Math.random()>0.5 ? "50%" : "2px";
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 3800);
+  }
+}
+
+// ============================================================
+//  INICIO
+// ============================================================
+cargarEstado();
+actualizarStats();
+</script>
+</body>
+</html>
